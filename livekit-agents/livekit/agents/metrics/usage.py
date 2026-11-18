@@ -5,6 +5,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from . import _prices
 from .base import (
     AgentMetrics,
     EOTInferenceMetrics,
@@ -19,9 +20,24 @@ from .base import (
 class _BaseModelUsage(BaseModel):
     def __repr__(self) -> str:
         # skip zeros for concise display
-        fields = {k: v for k, v in self.model_dump().items() if v != 0 and v != 0.0}
+        fields = {
+            k: v for k, v in self.model_dump().items() if v is not None and v != 0 and v != 0.0
+        }
         fields_str = ", ".join(f"{k}={v!r}" for k, v in fields.items())
         return f"{self.__class__.__name__}({fields_str})"
+
+
+class Cost(BaseModel):
+    """An estimated cost, with where its rates came from."""
+
+    amount: float
+    """The cost in ``currency``."""
+    currency: str = "USD"
+    """ISO 4217 currency code."""
+    rate_source: str
+    """Where the rates came from (e.g., 'llm-prices')."""
+    as_of: str
+    """Date or version of the rates."""
 
 
 class LLMModelUsage(_BaseModelUsage):
@@ -63,6 +79,12 @@ class LLMModelUsage(_BaseModelUsage):
 
     session_duration: float = 0.0
     """Total session connection duration in seconds (for session-based billing like xAI)."""
+
+    cost: Cost | None = None
+    """Estimated cost at the provider's public list price, filled when the optional
+    ``livekit-agents[prices]`` extra is installed. ``None`` for LiveKit Inference, realtime
+    models, unknown models, and when any request of this model could not be priced. It does not
+    know negotiated or plan-specific rates."""
 
 
 class TTSModelUsage(_BaseModelUsage):
@@ -145,6 +167,7 @@ class ModelUsageCollector:
         self._stt_usage: dict[tuple[str, str], STTModelUsage] = {}
         self._interruption_usage: dict[tuple[str, str], InterruptionModelUsage] = {}
         self._eot_usage: dict[tuple[str, str], EOTModelUsage] = {}
+        self._unpriced_llm: set[tuple[str, str]] = set()
 
     def __call__(self, metrics: AgentMetrics) -> None:
         self.collect(metrics)
@@ -201,6 +224,29 @@ class ModelUsageCollector:
             self._eot_usage[key] = EOTModelUsage(provider=provider, model=model)
         return self._eot_usage[key]
 
+    def _add_llm_cost(self, usage: LLMModelUsage, metrics: LLMMetrics) -> None:
+        # priced per request, so long-context rates apply to the request that crossed the
+        # threshold and not to the session total
+        key = (usage.provider, usage.model)
+        if key in self._unpriced_llm:
+            return
+        cost = _prices.estimate_llm_cost(
+            usage.provider,
+            usage.model,
+            input_tokens=metrics.prompt_tokens,
+            input_cached_tokens=metrics.prompt_cached_tokens,
+            input_cache_creation_tokens=metrics.cache_creation_tokens,
+            output_tokens=metrics.completion_tokens,
+        )
+        if cost is None:
+            # a partial sum would read as the full cost
+            self._unpriced_llm.add(key)
+            usage.cost = None
+        elif usage.cost is None:
+            usage.cost = cost
+        else:
+            usage.cost.amount += cost.amount
+
     def collect(self, metrics: AgentMetrics) -> None:
         if isinstance(metrics, LLMMetrics):
             provider, model = self._extract_provider_model(metrics)
@@ -210,6 +256,7 @@ class ModelUsageCollector:
             usage.input_cache_creation_tokens += metrics.cache_creation_tokens
             usage.output_tokens += metrics.completion_tokens
             usage.output_reasoning_tokens += metrics.reasoning_tokens
+            self._add_llm_cost(usage, metrics)
 
         elif isinstance(metrics, RealtimeModelMetrics):
             provider, model = self._extract_provider_model(metrics)
@@ -240,6 +287,9 @@ class ModelUsageCollector:
             usage.output_audio_tokens += metrics.output_token_details.audio_tokens
             usage.output_tokens += metrics.output_tokens
             usage.session_duration += metrics.session_duration
+            # audio and session billing are not in the price table
+            self._unpriced_llm.add((provider, model))
+            usage.cost = None
 
         elif isinstance(metrics, TTSMetrics):
             provider, model = self._extract_provider_model(metrics)

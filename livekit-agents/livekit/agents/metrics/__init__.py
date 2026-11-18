@@ -12,6 +12,7 @@ from .base import (
 )
 from .usage import (
     AgentSessionUsage,
+    Cost,
     EOTModelUsage,
     InterruptionModelUsage,
     LLMModelUsage,
@@ -42,6 +43,7 @@ __all__ = [
     "EOTModelUsage",
     "ModelUsage",
     "AgentSessionUsage",
+    "Cost",
     "ModelUsageCollector",
     # Deprecated - use ModelUsageCollector and ModelUsage instead
     "UsageSummary",

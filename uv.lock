@@ -2325,6 +2325,9 @@ perplexity = [
 phonic = [
     { name = "livekit-plugins-phonic" },
 ]
+prices = [
+    { name = "llm-prices" },
+]
 protoface = [
     { name = "livekit-plugins-protoface" },
 ]
@@ -2513,6 +2516,7 @@ requires-dist = [
     { name = "livekit-plugins-xai", marker = "extra == 'xai'", editable = "livekit-plugins/livekit-plugins-xai" },
     { name = "livekit-plugins-zoom-ai", marker = "extra == 'zoom-ai'", editable = "livekit-plugins/livekit-plugins-zoom-ai" },
     { name = "livekit-protocol", specifier = "==1.1.32" },
+    { name = "llm-prices", marker = "extra == 'prices'", specifier = ">=1.8.0,<2" },
     { name = "mcp", marker = "extra == 'mcp'", specifier = ">=2.2,<3" },
     { name = "nest-asyncio", specifier = ">=1.6.0" },
     { name = "numpy", specifier = ">=1.26.0" },
@@ -2535,7 +2539,7 @@ requires-dist = [
     { name = "typing-extensions", specifier = ">=4.12" },
     { name = "watchfiles", specifier = ">=1.0" },
 ]
-provides-extras = ["anam", "anthropic", "assemblyai", "asyncai", "atmee", "avatario", "avatartalk", "aws", "azure", "baseten", "bey", "bithuman", "bland", "boson-ai", "boson-avatar", "browser", "cambai", "cartesia", "cerebras", "clova", "codecs", "deepgram", "did", "elevenlabs", "fal", "fireworksai", "fishaudio", "gladia", "gnani", "google", "gradium", "groq", "hamming", "hume", "images", "inworld", "kalpa", "keyframe", "langchain", "lemonslice", "liveavatar", "lmnt", "lokutor", "mcp", "meta", "microsoft-ai", "minimax", "mistralai", "murf", "nabrah", "neuphonic", "nltk", "nvidia", "openai", "palabra", "perplexity", "phonic", "protoface", "resemble", "reson8", "respeecher", "rime", "rtzr", "runway", "sarvam", "silero", "simli", "simplismart", "smallestai", "soniox", "spatius", "speechify", "speechmatics", "spitch", "synthesia", "tavus", "thunderphone", "trugen", "turn-detector", "typesafe", "ultravox", "upliftai", "vakyam", "vlmrun", "xai", "zoom-ai"]
+provides-extras = ["anam", "anthropic", "assemblyai", "asyncai", "atmee", "avatario", "avatartalk", "aws", "azure", "baseten", "bey", "bithuman", "bland", "boson-ai", "boson-avatar", "browser", "cambai", "cartesia", "cerebras", "clova", "codecs", "deepgram", "did", "elevenlabs", "fal", "fireworksai", "fishaudio", "gladia", "gnani", "google", "gradium", "groq", "hamming", "hume", "images", "inworld", "kalpa", "keyframe", "langchain", "lemonslice", "liveavatar", "lmnt", "lokutor", "mcp", "meta", "microsoft-ai", "minimax", "mistralai", "murf", "nabrah", "neuphonic", "nltk", "nvidia", "openai", "palabra", "perplexity", "phonic", "prices", "protoface", "resemble", "reson8", "respeecher", "rime", "rtzr", "runway", "sarvam", "silero", "simli", "simplismart", "smallestai", "soniox", "spatius", "speechify", "speechmatics", "spitch", "synthesia", "tavus", "thunderphone", "trugen", "turn-detector", "typesafe", "ultravox", "upliftai", "vakyam", "vlmrun", "xai", "zoom-ai"]
 
 [[package]]
 name = "livekit-api"
@@ -4068,6 +4072,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/3f/09/3fa7a365894c444773f32e9ef483b0c9e4642891c77b85174d130165a308/livekit_protocol-1.1.32.tar.gz", hash = "sha256:2b2af25d16e65da64b9b16fec8d773a66107bf9c22db58d1ede5f156f42c98a7", size = 135835, upload-time = "2026-11-14T01:13:57.329Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d3/9c/028db5523b4434f98a96079fe5bef51919e290d5ada830c207aec01db7f9/livekit_protocol-1.1.32-py3-none-any.whl", hash = "sha256:f86e104b7a84e743f7e382892d781df4f103eefdbfb24520359158f9c427e032", size = 163639, upload-time = "2026-11-14T01:13:55.948Z" },
+]
+
+[[package]]
+name = "llm-prices"
+version = "1.8.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/0d/08/f11310db506a4ce63e0ea220ede2a61980fd735ec0d232c14d7b9fc8810e/llm_prices-1.8.0.tar.gz", hash = "sha256:3212c251ee3ed66694b2c637dbb7fef4bd296958a3b33f8949a71e3ffe8865cd", size = 98387, upload-time = "2026-11-18T16:27:25.5Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3a/72/5211d6fa7715509835bbd1d498b0469bbe5db260da1394cdb2e54d6ee9aa/llm_prices-1.8.0-py3-none-any.whl", hash = "sha256:9bb73b94bf99a127e1eea60706b1c4672af6315b8980bd7e98bc354d80b6cebd", size = 82123, upload-time = "2026-11-18T16:27:24.079Z" },
 ]
 
 [[package]]

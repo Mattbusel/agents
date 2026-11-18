@@ -66,6 +66,7 @@ dependencies = [
 [project.optional-dependencies]
 mcp = ["mcp>=2.2, <3"]
 codecs = ["numpy>=1.26.0"]
+prices = ["llm-prices>=1.8.0,<2"]
 images = [
     "pillow>=10.3.0; python_version < '3.11'",
     "pillow>=13.0.0; python_version >= '3.11'",

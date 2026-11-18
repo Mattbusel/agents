@@ -255,6 +255,57 @@ def test_collector_aggregates_reasoning_tokens() -> None:
     assert usage.output_tokens == 150
 
 
+def test_collector_prices_llm_usage_per_request() -> None:
+    llm_prices = pytest.importorskip("llm_prices")
+    price = llm_prices.lookup_provider("anthropic", "claude-sonnet-4-6")
+    collector = ModelUsageCollector()
+    for _ in range(2):
+        collector.collect(
+            _llm_metrics(
+                prompt_tokens=50_000,
+                prompt_cached_tokens=45_000,
+                cache_creation_tokens=3_000,
+                completion_tokens=1_000,
+                metadata=Metadata(
+                    model_provider="api.anthropic.com", model_name="claude-sonnet-4-6"
+                ),
+            )
+        )
+
+    [usage] = collector.flatten()
+    assert isinstance(usage, LLMModelUsage)
+    assert usage.cost is not None
+    # input_tokens counts cache reads and writes, so only 2_000 tokens bill at the input rate
+    per_request = (
+        2_000 * price.input
+        + 45_000 * price.cache_read
+        + 3_000 * price.cache_write["5m"]
+        + 1_000 * price.output
+    ) / 1e6
+    assert usage.cost.amount == pytest.approx(2 * per_request)
+    assert usage.cost.currency == "USD"
+    assert usage.cost.rate_source == "llm-prices"
+    assert usage.cost.as_of == llm_prices.GENERATED
+
+
+@pytest.mark.parametrize(
+    ("provider", "model"),
+    [
+        ("livekit", "openai/gpt-4.1-mini"),  # LiveKit Inference bills at its own rates
+        ("api.anthropic.com", "not-a-model"),
+        ("localhost:11434", "llama3"),
+    ],
+)
+def test_collector_leaves_unpriced_llm_usage_without_cost(provider: str, model: str) -> None:
+    pytest.importorskip("llm_prices")
+    collector = ModelUsageCollector()
+    collector.collect(_llm_metrics(metadata=Metadata(model_provider=provider, model_name=model)))
+
+    [usage] = collector.flatten()
+    assert isinstance(usage, LLMModelUsage)
+    assert usage.cost is None
+
+
 def _stt_metrics(**overrides: object) -> STTMetrics:
     base: dict[str, object] = {
         "label": "test.STT",
